@@ -11,18 +11,76 @@
 #include <string.h>
 #include <netdb.h>
 #include <fcntl.h>
+#include <ctype.h>
+
 
 #define MAXLINES 100
 #define MAXLEN 100
 #define UPTOLOWDIFF 32
 
-char *lineptr[];
+char *lineptr[MAXLINES];
+int dflag = 0;
+int fflag = 1;
+
+
+int equalfold(char *s, char *t);
+void _swap(void *v[], int i, int j);
+int directory(char *s) {
+	if (isdigit(*s) || isalpha(*s) || isspace(*s))
+		return 1;
+	return 0;
+}
+
 
 int myStrcmp(char *s, char *t) {
-	for (; *s == *t; s++, t++)
+	while (*s && *t) {
+		if (dflag) {
+			if (!directory(s)) {
+				s++;
+				continue;
+			}
+			if (!directory(t)) {
+				t++;
+				continue;
+			}
+		}
+		if (*s != *t)
+			break;
 		if (*s == '\0')
 			return 0;
+		s++;
+		t++;
+	}
 	return *s - *t;
+}
+
+int myStrcmpf(char *s, char *t) {
+	while (*s && *t) {
+		if (dflag) {
+			if (!directory(s)) {
+				s++;
+				continue;
+			}
+			if (!directory(t)) {
+				t++;
+				continue;
+			}
+		}
+		if (*s != *t && !equalfold(s, t))
+			break;
+		if (*s == '\0')
+			return 0;
+		s++;
+		t++;
+	}
+	char l,k;
+	l = *s;
+	k = *t;
+	if(fflag)
+	{
+		return (tolower(l)-tolower(k));
+	}
+	return l-k;
 }
 
 int _getline(char s[], int lim) {
@@ -61,13 +119,17 @@ void writelines(char *lineptr[], int nlines) {
 void reverselines(char *lineptr[], int nlines) {
 	int i;
 	for (i = 0; i < nlines / 2; i++)
-		_swap(lineptr, i, nlines - i - 1);
+		_swap((void **)lineptr, i, nlines - i - 1);
 }
 
 long long hashcodef(char *s1) {
-	long long v1=0;
+	long long v1 = 0;
 	long long i = 1;
 	while (*s1) {
+		if (dflag) {
+			if (!directory(s1))
+			continue;
+		}
 		if (islower(*s1))
 			v1 += ((*s1 - 32) * i) % 1000000000;
 		else
@@ -80,9 +142,13 @@ long long hashcodef(char *s1) {
 }
 
 long long hashcode(char *s1) {
-	long long v1=0;
+	long long v1 = 0;
 	long long i = 1;
 	while (*s1) {
+		if (dflag) {
+			if (!directory(s1))
+			continue;
+		}
 		v1 += (*s1 * i) % 1000000000;
 		i *= 13;
 		i %= 1000000000;
@@ -91,11 +157,25 @@ long long hashcode(char *s1) {
 	return v1;
 }
 
+void drop_error_string_format(){
+	fprintf(stderr,"Incomparable string to numerical sorting\n");
+	exit(0);
+}
+
+int check_string_format(char *s)
+{
+	while(isdigit(*s)) s++;
+	if(*s) return 0;
+	return 1;
+}
+
 int numcmp(char *s1, char *s2) {
-	long long v1, v2;
-	int i = 1;
-	v1 = hashcode(s1);
-	v2 = hashcode(s2);
+	long double v1, v2;
+	int h=check_string_format(s1);
+	int g=check_string_format(s2);
+	if(!h || !g) drop_error_string_format();
+	v1 = atof(s1);
+	v2 = atof(s2);
 	if (v1 < v2)
 		return -1;
 	else if (v1 > v2)
@@ -105,10 +185,12 @@ int numcmp(char *s1, char *s2) {
 }
 
 int numcmpf(char *s1, char *s2) {
-	long long v1, v2;
-	int i = 1;
-	v1 = hashcodef(s1);
-	v2 = hashcodef(s2);
+	long double v1, v2;
+	int h=check_string_format(s1);
+	int g=check_string_format(s2);
+	if(!h || !g) drop_error_string_format();
+	v1 = atof(s1);
+	v2 = atof(s2);
 	if (v1 < v2)
 		return -1;
 	else if (v1 > v2)
@@ -156,22 +238,23 @@ int main(int argc, char *argv[]) {
 	int numeric = 0; /* 1 if numeric sort */
 	int reverse = 0; /*1 for reverse sort*/
 	int k;
-	int fold = 0; /*to fold upper and lower case*/
 	for (k = 1; k < argc; k++) {
 		if (strcmp(argv[k], "-n") == 0)
 			numeric = 1;
 		if (strcmp(argv[k], "-r") == 0)
 			reverse = 1;
 		if (strcmp(argv[k], "-f") == 0)
-			fold = 1;
+			fflag = 1;
+		if (strcmp(argv[k], "-d") == 0)
+			dflag = 1;
 	}
 	if ((nlines = readlines(lineptr, MAXLINES)) >= 0) {
-		if (fold) {
+		if (fflag) {
 			_qsort((void**) lineptr, 0, nlines - 1,
-					(int(*)(void*, void*)) (numeric ? numcmpf : myStrcmp));
+					(int(*)(void*, void*)) (numeric ? numcmpf : myStrcmpf));
 		} else
 			_qsort((void**) lineptr, 0, nlines - 1,
-					(int(*)(void*, void*)) (numeric ? numcmp : strcmp));
+					(int(*)(void*, void*)) (numeric ? numcmp : myStrcmp));
 		if (reverse)
 			reverselines(lineptr, nlines);
 		writelines(lineptr, nlines);
