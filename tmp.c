@@ -20,12 +20,13 @@
 
 char *lineptr[MAXLINES];
 int dflag = 0;
-int fflag = 1;
+int fflag = 0;
 
 
 int equalfold(char *s, char *t);
 void _swap(void *v[], int i, int j);
 int directory(char *s) {
+	if(!(*s)) return -1;
 	if (isdigit(*s) || isalpha(*s) || isspace(*s))
 		return 1;
 	return 0;
@@ -122,7 +123,7 @@ void reverselines(char *lineptr[], int nlines) {
 		_swap((void **)lineptr, i, nlines - i - 1);
 }
 
-long long hashcodef(char *s1) {
+/*long long hashcodef(char *s1) {
 	long long v1 = 0;
 	long long i = 1;
 	while (*s1) {
@@ -155,7 +156,7 @@ long long hashcode(char *s1) {
 		s1++;
 	}
 	return v1;
-}
+}*/
 
 void drop_error_string_format(){
 	fprintf(stderr,"Incomparable string to numerical sorting\n");
@@ -164,6 +165,7 @@ void drop_error_string_format(){
 
 int check_string_format(char *s)
 {
+	if(!(*s)) return -1;
 	while(isdigit(*s)) s++;
 	if(*s) return 0;
 	return 1;
@@ -171,9 +173,16 @@ int check_string_format(char *s)
 
 int numcmp(char *s1, char *s2) {
 	long double v1, v2;
+	if(!(*s1) || !(*s2)) return 300;
 	int h=check_string_format(s1);
 	int g=check_string_format(s2);
-	if(!h || !g) drop_error_string_format();
+	if(!h || !g) 
+	{
+		#ifndef TEST 
+		drop_error_string_format();
+		#endif
+		return 300;
+	}
 	v1 = atof(s1);
 	v2 = atof(s2);
 	if (v1 < v2)
@@ -184,23 +193,11 @@ int numcmp(char *s1, char *s2) {
 		return 0;
 }
 
-int numcmpf(char *s1, char *s2) {
-	long double v1, v2;
-	int h=check_string_format(s1);
-	int g=check_string_format(s2);
-	if(!h || !g) drop_error_string_format();
-	v1 = atof(s1);
-	v2 = atof(s2);
-	if (v1 < v2)
-		return -1;
-	else if (v1 > v2)
-		return 1;
-	else
-		return 0;
-}
 
 int equalfold(char *s, char *t) {
-	if (abs(s - t) == UPTOLOWDIFF && isalpha(*s) && isalpha(*t))
+	if(!(*s) || !(*t)) return -1;
+	if(*s==*t) return 1;
+	if (abs(*s - *t) == UPTOLOWDIFF && isalpha(*s) && isalpha(*t))
 		return 1;
 	return 0;
 }
@@ -232,7 +229,7 @@ void _qsort(void *v[], int left, int right, int(*comp)(void *, void *)) {
 	_qsort(v, left, last - 1, comp);
 	_qsort(v, last + 1, right, comp);
 }
-
+#ifndef TEST
 int main(int argc, char *argv[]) {
 	int nlines; /* number of input lines read */
 	int numeric = 0; /* 1 if numeric sort */
@@ -251,7 +248,7 @@ int main(int argc, char *argv[]) {
 	if ((nlines = readlines(lineptr, MAXLINES)) >= 0) {
 		if (fflag) {
 			_qsort((void**) lineptr, 0, nlines - 1,
-					(int(*)(void*, void*)) (numeric ? numcmpf : myStrcmpf));
+					(int(*)(void*, void*)) (numeric ? numcmp : myStrcmpf));
 		} else
 			_qsort((void**) lineptr, 0, nlines - 1,
 					(int(*)(void*, void*)) (numeric ? numcmp : myStrcmp));
@@ -265,4 +262,4 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 }
-
+#endif
