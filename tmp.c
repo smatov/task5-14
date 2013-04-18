@@ -12,6 +12,7 @@
 #include <netdb.h>
 #include <fcntl.h>
 #include <ctype.h>
+#include "myatoi.h"
 
 #define MAXLINES 100
 #define MAXLEN 100
@@ -20,7 +21,7 @@
 char *lineptr[MAXLINES];
 int dflag = 0;
 int fflag = 0;
-int numeric = 0;
+int numeric = 1;
 int reverse = 0;
 
 int equalfold(char *s, char *t);
@@ -101,6 +102,28 @@ _getline(char s[], int lim)
 	return i;
 }
 
+void
+drop_error_string_format()
+{
+	fprintf(stderr, "Incomparable string to numerical sorting\n");
+	exit(0);
+}
+int
+check_string_format(char *s)
+{
+	if (!(*s))
+		return -1;
+	if (*s == '-' || *s == '+' || isdigit(*s))
+		s++;
+	else
+		return 0;
+	while (isdigit(*s))
+		s++;
+	if (*s)
+		return 0;
+	return 1;
+}
+
 int
 readlines(char *lineptr[], int maxlines)
 {
@@ -113,6 +136,10 @@ readlines(char *lineptr[], int maxlines)
 		else {
 			line[len - 1] = '\0';
 			strcpy(p, line);
+			int ans;
+			int ff=myAtoi(p,&ans);
+			if(numeric && ff==-1)
+				drop_error_string_format();
 			lineptr[nlines++] = p;
 		}
 	return nlines;
@@ -134,28 +161,7 @@ reverselines(char *lineptr[], int nlines)
 		_swap((void **) lineptr, i, nlines - i - 1);
 }
 
-void
-drop_error_string_format()
-{
-	fprintf(stderr, "Incomparable string to numerical sorting\n");
-	exit(0);
-}
 
-int
-check_string_format(char *s)
-{
-	if (!(*s))
-		return -1;
-	if (*s == '-' || *s == '+' || isdigit(*s))
-		s++;
-	else
-		return 0;
-	while (isdigit(*s))
-		s++;
-	if (*s)
-		return 0;
-	return 1;
-}
 
 int
 numcmp(char *s1, char *s2)
