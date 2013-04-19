@@ -18,10 +18,15 @@
 #define MAXLEN 100
 #define UPTOLOWDIFF 32
 
+
+#ifndef TEST
+FILE* fd;
+#endif
+
 char *lineptr[MAXLINES];
 int dflag = 0;
 int fflag = 0;
-int numeric = 1;
+int numeric = 0;
 int reverse = 0;
 
 int equalfold(char *s, char *t);
@@ -92,8 +97,19 @@ int
 _getline(char s[], int lim)
 {
 	int c, i;
+	int test =1;
+#ifndef TEST
+	test=0;
+#endif
+	if(test)
+	{
+		for (i = 0; i < lim - 1 && (c =getc(fd)) != EOF && c != '\n'; ++i)
+			s[i] = c;
+	} else
+	{
 	for (i = 0; i < lim - 1 && (c = getchar()) != EOF && c != '\n'; ++i)
 		s[i] = c;
+	}
 	if (c == '\n') {
 		s[i] = c;
 		++i;
@@ -129,10 +145,18 @@ readlines(char *lineptr[], int maxlines)
 {
 	int len, nlines;
 	char *p, line[MAXLEN];
+#ifndef TEST
+	fd = fopen("input.txt","r");
+#endif
 	nlines = 0;
 	while ((len = _getline(line, MAXLEN)) > 1)
 		if (nlines >= MAXLINES || (p = malloc(len)) == NULL)
+		{
+#ifndef TEST
+			fclose(fd);
+#endif
 			return -1;
+		}
 		else {
 			line[len - 1] = '\0';
 			strcpy(p, line);
@@ -142,15 +166,22 @@ readlines(char *lineptr[], int maxlines)
 				drop_error_string_format();
 			lineptr[nlines++] = p;
 		}
+#ifndef TEST
+	fclose(fd);
+#endif
 	return nlines;
 }
 
-void
+int
 writelines(char *lineptr[], int nlines)
 {
 	int i;
+	if(nlines==0) return -1;
 	for (i = 0; i < nlines; i++)
+	{
 		printf("%s\n", lineptr[i]);
+	}
+	return 0;
 }
 
 void
@@ -244,6 +275,7 @@ _qsort(void *v[], int left, int right, int(*comp)(void *, void *))
 #ifndef TEST
 int main(int argc, char *argv[]) {
 	int nlines;
+	fd = fopen("input.txt","r");
 	char c;
 	int k = 0;
 	while (--argc > 0 && (*++argv)[k] == '-')
@@ -282,3 +314,4 @@ int main(int argc, char *argv[]) {
 	}
 }
 #endif
+

@@ -17,7 +17,6 @@
 #include <malloc.h>
 #include <ctype.h>
 
-
 extern int equalfold(char *s, char *t);
 
 extern int directory(char *s);
@@ -32,9 +31,7 @@ extern int _getline(char s[], int lim);
 
 extern int readlines(char *lineptr[], int maxlines);
 
-extern void writelines(char *lineptr[], int nlines);
-
-extern void reverselines(char *lineptr[], int nlines);
+extern int writelines(char *lineptr[], int nlines);
 
 extern int check_string_format(char *s);
 

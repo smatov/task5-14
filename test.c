@@ -4,8 +4,74 @@
 
 #include "lib.h"
 #include <assert.h>
+#include <stdio.h>
+#define MAXLINES 100
+#define MAXLEN 100
+
+//--READLINES--//
+void test_readlines_emptyfile()
+{
+	char *lineptr[MAXLINES];
+	int i=readlines(lineptr,MAXLEN);
+	assert(i==0);
+	
+}
+
+void test_readlines_somelines()
+{
+	char *lineptr[MAXLINES];
+	char *testptr[MAXLINES];
+	int x;
+	for(x=0; x<MAXLINES; x++)
+		testptr[x] = malloc(sizeof(char)*MAXLEN);
+	strcpy(testptr[0],"123");
+	strcpy(testptr[1],"vasyaASDSDDSDDSDSDSDDS");
+	strcpy(testptr[2],"IMAFIRINMAHLAZOR");
+	int f=readlines(lineptr,MAXLEN);
+	assert(f==3);
+	int i;
+	for(i=0; i<3; i++)
+		assert(*lineptr[i]==*testptr[i]);
+	for(x=0; x<MAXLINES; x++)
+		free(testptr[x]);
+	destroy(lineptr,f);
+}
 
 
+//--WRITELINES--//
+void test_writelines_nolines()
+{
+	char *lineptr[MAXLINES];
+	int i=readlines(lineptr,MAXLEN);
+	int f=writelines(lineptr,i);
+	assert(f==-1);
+}
+
+void test_writelines_empty_string_inside()
+{
+	char *testptr[MAXLINES];
+	int x;
+	for(x=0; x<MAXLINES; x++)
+		testptr[x] = malloc(sizeof(char)*MAXLEN);
+	strcpy(testptr[0],"123");
+	strcpy(testptr[2],"IMAFIRINMAHLAZOR");
+	*testptr[1]='\0';
+	int f=writelines(testptr,3);
+	assert(f==0);
+	destroy(testptr,3);
+}
+
+void test_writelines()
+{
+	test_writelines_nolines();
+	test_writelines_empty_string_inside();
+}
+
+void test_readlines()
+{
+	test_readlines_somelines();
+	test_readlines_emptyfile();
+}
 
 //--EQUALFOLD---//
 void test_equalfold_not_same_letters() {
@@ -66,6 +132,8 @@ void test_equalfold(){
 void test_mystrcmp_empty_strings(){
 	char *a=malloc(sizeof(char)*10);
 	char *b=malloc(sizeof(char)*10);
+	*a='\0';
+	*b='\0';
 	int ans=myStrcmp(a,b);
 	free(a);
 	free(b);
@@ -103,6 +171,7 @@ void test_mystrcmp(){
 //--DIRECTORY--//
 void test_directory_empty(){
 	char *a=malloc(sizeof(char));
+	*a='\0';
 	int ans = directory(a);
 	free(a);
 	assert(ans==-1);
@@ -155,6 +224,8 @@ void test_directory(){
 void test_mystrcmpf_empty_strings(){
 	char *a=malloc(sizeof(char)*10);
 	char *b=malloc(sizeof(char)*10);
+	*a='\0';
+	*b='\0';
 	int ans=myStrcmpf(a,b);
 	free(a);
 	free(b);
@@ -241,6 +312,8 @@ void test_check_string_format(){
 void test_numcmp_empty(){
 	char *a=malloc(sizeof(char)*10);
 	char *b=malloc(sizeof(char)*10);
+	*a='\0';
+	*b='\0';
 	int ans=numcmp(a,b);
 	free(a);
 	free(b);
@@ -278,9 +351,63 @@ void test_numcmp(){
 	test_numcmp_empty();
 }
 
+//--SWAP--//
+void test_swap_single_line()
+{
+	char *lineptr[MAXLINES];
+	int x;
+	for(x=0; x<MAXLINES; x++)
+		lineptr[x]=malloc(sizeof(char)*MAXLEN);
+	strcpy(lineptr[0],"123lal");
+	_swap((void**)lineptr,0,0);
+	assert(strcmp(lineptr[0],"123lal")==0);
+	destroy(lineptr,MAXLINES);
+}
+
+void test_swap_somelines()
+{
+	char *lineptr[MAXLINES];
+	int x;
+	for(x=0; x<MAXLINES; x++)
+		lineptr[x]=malloc(sizeof(char)*MAXLEN);
+	strcpy(lineptr[0],"123lal");
+	strcpy(lineptr[1],"faf");
+	_swap((void**)lineptr,0,1);
+	assert((strcmp(lineptr[1],"123lal")==0)&&(strcmp(lineptr[0],"faf")==0));
+	destroy(lineptr,MAXLINES);
+}
+
+void test_swap()
+{
+	test_swap_single_line();
+	test_swap_somelines();
+}
 
 
-int main() {
+//--GETLINE--//
+
+void test_getline()
+{
+	char *s=malloc(sizeof(char)*MAXLEN);
+	
+}
+
+void run_all_tests()
+{
 	test_numcmp();
+	test_directory();
+	test_check_string_format();
+	test_readlines();
+	test_writelines();
+	test_mystrcmp();
+	test_mystrcmpf();
+	test_swap();
+	test_equalfold();
+}
+
+int main() 
+{
+	test_equalfold();
+	//run_all_tests();
 	return 0;
 }
