@@ -19,7 +19,7 @@
 #define UPTOLOWDIFF 32
 
 
-#ifndef TEST
+#ifdef TEST
 FILE* fd;
 #endif
 
@@ -98,7 +98,7 @@ _getline(char s[], int lim)
 {
 	int c, i;
 	int test =1;
-#ifndef TEST
+#ifdef TEST
 	test=0;
 #endif
 	if(test)
@@ -145,14 +145,14 @@ readlines(char *lineptr[], int maxlines)
 {
 	int len, nlines;
 	char *p, line[MAXLEN];
-#ifndef TEST
+#ifdef TEST
 	fd = fopen("input.txt","r");
 #endif
 	nlines = 0;
 	while ((len = _getline(line, MAXLEN)) > 1)
 		if (nlines >= MAXLINES || (p = malloc(len)) == NULL)
 		{
-#ifndef TEST
+#ifdef TEST
 			fclose(fd);
 #endif
 			return -1;
@@ -166,7 +166,7 @@ readlines(char *lineptr[], int maxlines)
 				drop_error_string_format();
 			lineptr[nlines++] = p;
 		}
-#ifndef TEST
+#ifdef TEST
 	fclose(fd);
 #endif
 	return nlines;
