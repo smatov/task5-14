@@ -14,8 +14,11 @@ void test_readlines_emptyfile()
 	char *lineptr[MAXLINES];
 	int i=readlines(lineptr,MAXLEN);
 	assert(i==0);
+	destroy(lineptr);
 	
 }
+
+
 
 void test_readlines_somelines()
 {
@@ -45,6 +48,7 @@ void test_writelines_nolines()
 	int i=readlines(lineptr,MAXLEN);
 	int f=writelines(lineptr,i);
 	assert(f==-1);
+	destroy(lineptr);
 }
 
 void test_writelines_empty_string_inside()
@@ -72,6 +76,26 @@ void test_readlines()
 	test_readlines_somelines();
 	test_readlines_emptyfile();
 }
+
+
+
+
+
+//--REVERSELINES--//
+void test_reverselines()
+{
+	char *lineptr[MAXLINES];
+	int n=readlines(lineptr,MAXLEN);
+	assert(n>0);
+	reverselines(lineptr,n);
+	assert(strcmp(lineptr[0],"e")==0);
+	assert(strcmp(lineptr[1],"d")==0);
+	assert(strcmp(lineptr[2],"c")==0);
+	assert(strcmp(lineptr[3],"b")==0);
+	assert(strcmp(lineptr[4],"a")==0);
+	destroy(lineptr);
+}
+
 
 //--EQUALFOLD---//
 void test_equalfold_not_same_letters() {
@@ -384,21 +408,94 @@ void test_swap()
 }
 
 
-//--GETLINE--//
+//--getline--//
 
-void test_getline()
+void test_getline_nothing_to_get()
 {
-	char *s=malloc(sizeof(char)*MAXLEN);
+	char s[MAXLEN];
+	int n=_getline(s,MAXLEN);
+	assert(n==0);
 	
 }
+
+
+void test_getline_some_string()
+{
+	char s[MAXLEN];
+	int n=_getline(s,MAXLEN);
+	assert(n==15);//always a \n character at the end
+	assert(strcmp(s,"vasyaajajajaja\n")==0);
+	
+}
+
+void test_getline_bigline()
+{
+	char s[MAXLEN];
+	int i=_getline(s,MAXLEN);
+	assert(i==-1);
+	
+}
+
+//--QSORT--//
+
+void test_qsort_cmp()
+{
+	char *lineptr[MAXLINES];
+	int n=readlines(lineptr,MAXLEN);
+	assert(n>0);
+	__qsort((void**)lineptr,0,n-1,(int(*)(void*, void*))myStrcmp);
+	assert(strcmp(lineptr[0],"AAB")==0);
+	assert(strcmp(lineptr[1],"aab")==0);
+	assert(strcmp(lineptr[2],"caab")==0);
+	assert(strcmp(lineptr[3],"lal")==0);
+	assert(strcmp(lineptr[4],"zAAAAAAAAA")==0);
+	destroy(lineptr);
+	
+	
+}
+
+void test_qsort_cmpf()
+{
+	char *lineptr[MAXLINES];
+	int n=readlines(lineptr,MAXLEN);
+	assert(n>0);
+	__qsort((void**)lineptr,0,n-1,(int(*)(void*, void*))myStrcmpf);
+	assert(strcmp(lineptr[0],"AAA")==0);
+	assert(strcmp(lineptr[1],"aab")==0);
+	assert(strcmp(lineptr[2],"Caab")==0);
+	assert(strcmp(lineptr[3],"Lal")==0);
+	assert(strcmp(lineptr[4],"ZAAAAAAAAA")==0);
+	destroy(lineptr);
+	
+}
+void test_qsort_numcmp()
+{
+	char *lineptr[MAXLINES];
+	int n=readlines(lineptr,MAXLEN);
+	assert(n>0);
+	__qsort((void**)lineptr,0,n-1,(int(*)(void*, void*))numcmp);
+	assert(strcmp(lineptr[0],"-12")==0);
+	assert(strcmp(lineptr[1],"23")==0);
+	assert(strcmp(lineptr[2],"111")==0);
+	assert(strcmp(lineptr[3],"130")==0);
+	assert(strcmp(lineptr[4],"800000000")==0);
+	destroy(lineptr);
+	
+}
+
+//-------WARNING---------//
+//the INPUT.TXT file is the same file for all the tests.
+//Make sure you don't use same file for different tests where work with this file occured
+//always put a \n character at the end of non-empty strings
+
 
 void run_all_tests()
 {
 	test_numcmp();
 	test_directory();
 	test_check_string_format();
-	test_readlines();
-	test_writelines();
+	//test_readlines(); //got conflits with each other while using same input.txt file
+	//test_writelines();
 	test_mystrcmp();
 	test_mystrcmpf();
 	test_swap();
@@ -407,7 +504,6 @@ void run_all_tests()
 
 int main() 
 {
-	test_equalfold();
-	//run_all_tests();
+	test_qsort_numcmp();
 	return 0;
 }

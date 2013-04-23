@@ -17,29 +17,29 @@
 #include <malloc.h>
 #include <ctype.h>
 
-extern int equalfold(char *s, char *t);
+extern int equalfold(char *s, char *t);//
 
-extern int directory(char *s);
+extern int directory(char *s);//
 
-extern int myStrcmp(char *s, char *t);
+extern int myStrcmp(char *s, char *t);//
 
-extern int myStrcmpf(char *s, char *t);
+extern int myStrcmpf(char *s, char *t);//
 
 extern void reverselines(char *lineptr[], int nlines);
 
-extern int _getline(char s[], int lim);
+extern int _getline(char s[], int lim);//
 
-extern int readlines(char *lineptr[], int maxlines);
+extern int readlines(char *lineptr[], int maxlines);//
 
-extern int writelines(char *lineptr[], int nlines);
+extern int writelines(char *lineptr[], int nlines);//
 
-extern int check_string_format(char *s);
+extern int check_string_format(char *s);//
 
-extern int numcmp(char *s1, char *s2);
+extern int numcmp(char *s1, char *s2);//
 
-extern void _swap(void *v[], int i, int j);
+extern void _swap(void *v[], int i, int j);//
 
-extern void _qsort(void *v[], int left, int right, int(*comp)(void *, void *));
+extern void __qsort(void *v[], int left, int right, int(*comp)(void *, void *));//
 
 
 

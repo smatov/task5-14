@@ -87,27 +87,35 @@ myStrcmpf(char *s, char *t)
 	char l, k;
 	l = *s;
 	k = *t;
-	if (fflag) {
+
 		return (tolower(l) - tolower(k));
-	}
-	return l - k;
 }
 
 int
 _getline(char s[], int lim)
 {
 	int c, i;
-	int test =1;
 #ifdef TEST
-	test=0;
-#endif
-	if(test)
-	{
-		for (i = 0; i < lim - 1 && (c =getc(fd)) != EOF && c != '\n'; ++i)
+	if(fd<=0) fd = fopen("input.txt","r");
+		for (i = 0; i < 1000 && (c =getc(fd)) != EOF && c != '\n'; ++i)
+		{
+			if(i>=lim-1)
+			{
+				return -1;
+			}
 			s[i] = c;
-	} else
+		}
+#endif
+
+	for (i = 0; i < 1000 && (c = getchar()) != EOF && c != '\n'; ++i)
 	{
-	for (i = 0; i < lim - 1 && (c = getchar()) != EOF && c != '\n'; ++i)
+		if(i>=lim-1)
+		{
+			printf("\n");
+			printf("\n");
+			printf("WARNING!! Line is greater then <lim> value.\n The program won't be correct\n\n");
+			return -1;
+		}
 		s[i] = c;
 	}
 	if (c == '\n') {
@@ -275,7 +283,6 @@ _qsort(void *v[], int left, int right, int(*comp)(void *, void *))
 #ifndef TEST
 int main(int argc, char *argv[]) {
 	int nlines;
-	fd = fopen("input.txt","r");
 	char c;
 	int k = 0;
 	while (--argc > 0 && (*++argv)[k] == '-')
