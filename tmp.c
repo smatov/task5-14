@@ -21,12 +21,19 @@
 
 #ifdef TEST
 FILE* fd;
+#define OPEN_FD() fd = fopen("input.txt","r")
+#define CLOSE_FD() close(fd)
+#else
+#define OPEN_FD()
+#define CLOSE_FD()
 #endif
+
+
 
 char *lineptr[MAXLINES];
 int dflag = 0;
 int fflag = 0;
-int numeric = 0;
+int numeric = 1;
 int reverse = 0;
 
 int equalfold(char *s, char *t);
@@ -34,8 +41,6 @@ void _swap(void *v[], int i, int j);
 int
 directory(char *s)
 {
-	if (!(*s))
-		return -1;
 	if (isdigit(*s) || isalpha(*s) || isspace(*s))
 		return 1;
 	return 0;
@@ -56,8 +61,6 @@ myStrcmp(char *s, char *t)
 		}
 		if (*s != *t)
 			break;
-		if (*s == '\0')
-			return 0;
 		s++;
 		t++;
 	}
@@ -79,25 +82,20 @@ myStrcmpf(char *s, char *t)
 		}
 		if (*s != *t && !equalfold(s, t))
 			break;
-		if (*s == '\0')
-			return 0;
 		s++;
 		t++;
 	}
-	char l, k;
-	l = *s;
-	k = *t;
-
-		return (tolower(l) - tolower(k));
+	return (tolower(*s) - tolower(*t));
 }
 
 int
 _getline(char s[], int lim)
 {
 	int c, i;
+	int test=0;
 #ifdef TEST
 	if(fd<=0) fd = fopen("input.txt","r");
-		for (i = 0; i < 1000 && (c =getc(fd)) != EOF && c != '\n'; ++i)
+		for (i = 0; (c =getc(fd)) != EOF && c != '\n'; ++i)
 		{
 			if(i>=lim-1)
 			{
@@ -105,18 +103,21 @@ _getline(char s[], int lim)
 			}
 			s[i] = c;
 		}
+		test=1;
 #endif
-
-	for (i = 0; i < 1000 && (c = getchar()) != EOF && c != '\n'; ++i)
+	if(!test)
 	{
-		if(i>=lim-1)
+		for (i = 0;(c = getchar()) != EOF && c != '\n'; ++i)
 		{
-			printf("\n");
-			printf("\n");
-			printf("WARNING!! Line is greater then <lim> value.\n The program won't be correct\n\n");
-			return -1;
+			if(i>=lim-1)
+			{
+				printf("\n");
+				printf("\n");
+				printf("WARNING!! Line is greater then <lim> value.\n The program won't be correct\n\n");
+				return -1;
+			}
+			s[i] = c;
 		}
-		s[i] = c;
 	}
 	if (c == '\n') {
 		s[i] = c;
@@ -130,13 +131,10 @@ void
 drop_error_string_format()
 {
 	fprintf(stderr, "Incomparable string to numerical sorting\n");
-	exit(0);
 }
 int
 check_string_format(char *s)
 {
-	if (!(*s))
-		return -1;
 	if (*s == '-' || *s == '+' || isdigit(*s))
 		s++;
 	else
@@ -153,30 +151,40 @@ readlines(char *lineptr[], int maxlines)
 {
 	int len, nlines;
 	char *p, line[MAXLEN];
-#ifdef TEST
-	fd = fopen("input.txt","r");
-#endif
+	OPEN_FD();
 	nlines = 0;
 	while ((len = _getline(line, MAXLEN)) > 1)
-		if (nlines >= MAXLINES || (p = malloc(len)) == NULL)
+		if (nlines >= MAXLINES )
 		{
-#ifdef TEST
-			fclose(fd);
-#endif
-			return -1;
+			CLOSE_FD();
+			return nlines*(-1) - 1;
+		}
+		else
+		if(!(p=malloc(len)))
+		{
+			CLOSE_FD();
+			return nlines*(-1) - 1;
 		}
 		else {
 			line[len - 1] = '\0';
 			strcpy(p, line);
 			int ans;
 			int ff=myAtoi(p,&ans);
+			if(numeric)
+			{
+				myItoa(ans,p);
+			}
 			if(numeric && ff==-1)
+			{
 				drop_error_string_format();
+				CLOSE_FD();
+				free(p);
+				strcpy(line,"");
+				return nlines*(-1) - 1;
+			}
 			lineptr[nlines++] = p;
 		}
-#ifdef TEST
-	fclose(fd);
-#endif
+	CLOSE_FD();
 	return nlines;
 }
 
@@ -206,16 +214,6 @@ int
 numcmp(char *s1, char *s2)
 {
 	long double v1, v2;
-	if (!(*s1) || !(*s2))
-		return 300;
-	int h = check_string_format(s1);
-	int g = check_string_format(s2);
-	if (!h || !g) {
-#ifndef TEST
-		drop_error_string_format();
-#endif
-		return 300;
-	}
 	v1 = atof(s1);
 	v2 = atof(s2);
 	if (v1 < v2)
@@ -229,8 +227,6 @@ numcmp(char *s1, char *s2)
 int
 equalfold(char *s, char *t)
 {
-	if (!(*s) || !(*t))
-		return -1;
 	if (*s == *t)
 		return 1;
 	if (abs(*s - *t) == UPTOLOWDIFF && isalpha(*s) && isalpha(*t))
@@ -316,9 +312,11 @@ int main(int argc, char *argv[]) {
 		destroy((void**) lineptr, nlines);
 		return 0;
 	} else {
-		printf("input too big to sort\n");
+		nlines*=-1;
+		printf("Error occurs on line %d\n",nlines);
+		nlines--;
+		destroy((void**) lineptr, nlines);
 		return 1;
 	}
 }
 #endif
-
